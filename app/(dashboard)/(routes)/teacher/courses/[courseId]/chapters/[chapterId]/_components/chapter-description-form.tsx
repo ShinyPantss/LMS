@@ -8,7 +8,7 @@ import { Pencil } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { Course } from "@prisma/client";
+import { Chapter } from "@prisma/client";
 
 import {
   Form,
@@ -20,28 +20,24 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
-import { Combobox } from "@/components/ui/combobox";
+import { Editor } from "@/components/editor";
+import { Preview } from "@/components/preview";
 
-interface CategoryFormProps {
-  initialData: Course;
+interface ChapterDescriptionFormProps {
+  initialData: Chapter;
   courseId: string;
-  options: {
-    label: string;
-    value: string;
-  }[];
+  chapterId: string;
 }
 
 const formSchema = z.object({
-  categoryId: z.string().min(1, {
-    message: "Category is required",
-  }),
+  description: z.string().min(1),
 });
 
-export const CategoryForm = ({
+export const ChapterDescriptionForm = ({
   initialData,
   courseId,
-  options,
-}: CategoryFormProps) => {
+  chapterId,
+}: ChapterDescriptionFormProps) => {
   const [isEditing, setIsEditing] = useState(false);
 
   const toggleEdit = () => setIsEditing((current) => !current);
@@ -51,7 +47,7 @@ export const CategoryForm = ({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      categoryId: initialData?.categoryId || "",
+      description: initialData?.description || "",
     },
   });
 
@@ -59,42 +55,45 @@ export const CategoryForm = ({
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      await axios.patch(`/api/courses/${courseId}`, values);
-      toast.success("Course updated");
+      await axios.patch(
+        `/api/courses/${courseId}/chapters/${chapterId}`,
+        values
+      );
+      toast.success("Chapter updated");
       toggleEdit();
       router.refresh();
     } catch {
       toast.error("Something went wrong");
     }
   };
-  const selectedOption = options.find(
-    (option) => option.value === initialData.categoryId
-  );
 
   return (
     <div className="mt-6 border bg-slate-100 rounded-md p-4">
       <div className="font-medium flex items-center justify-between">
-        Course Category
+        Chapter description
         <Button onClick={toggleEdit} variant="ghost">
           {isEditing ? (
             <>Cancel</>
           ) : (
             <>
               <Pencil className="h-4 w-4 mr-2" />
-              Edit Category
+              Edit description
             </>
           )}
         </Button>
       </div>
       {!isEditing && (
-        <p
+        <div
           className={cn(
             "text-sm mt-2",
-            !initialData.categoryId && "text-slate-500 italic"
+            !initialData.description && "text-slate-500 italic"
           )}
         >
-          {selectedOption?.label || "No category"}
-        </p>
+          {!initialData.description && "No description"}
+          {initialData.description && (
+            <Preview value={initialData.description} />
+          )}
+        </div>
       )}
       {isEditing && (
         <Form {...form}>
@@ -104,14 +103,11 @@ export const CategoryForm = ({
           >
             <FormField
               control={form.control}
-              name="categoryId"
+              name="description"
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                 <Combobox 
-                 options={options}
-                {...field}
-                 />
+                    <Editor {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
