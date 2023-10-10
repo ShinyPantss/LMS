@@ -33,7 +33,7 @@ const ChaptersList = ({ items, onReorder, onEdit }: ChaptersListProps) => {
     const items = Array.from(chapters);
 
     const [reorderedItem] = items.splice(result.source.index, 1);
-    console.log(reorderedItem)
+    
     items.splice(result.destination.index, 0, reorderedItem);
 
     const startIndex = Math.min(result.source.index, result.destination.index);

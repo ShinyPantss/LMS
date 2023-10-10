@@ -56,7 +56,7 @@ export const ChapterTitleForm = ({
       toggleEdit();
       router.refresh();
     } catch {
-        console.log('first')
+  
       toast.error("Something went wrong");
     }
   };
